@@ -1,3 +1,9 @@
 [submodule "Thirdparty/phnt"]
 	path = Thirdparty/phnt
 	url = https://github.com/winsiderss/phnt.git
+[submodule "Thirdparty/LuaBridge"]
+	path = Thirdparty/LuaBridge
+	url = https://github.com/kunitoki/LuaBridge3.git
+[submodule "Thirdparty/luajit"]
+	path = Thirdparty/luajit
+	url = https://luajit.org/git/luajit.git

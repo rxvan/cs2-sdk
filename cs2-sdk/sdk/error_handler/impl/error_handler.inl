@@ -1,4 +1,9 @@
 #include "../error_handler.h"
+#ifndef ALWAYS_INLINE
+#include "../../sdk.h"
+#endif // !ALWAYS_INLINE
+
+
 #include <signal.h>
 
 namespace sdk {

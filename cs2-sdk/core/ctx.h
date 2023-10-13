@@ -15,6 +15,7 @@ public:
 	// thread safe initialized check.
 	std::atomic< bool > m_ready{ false };
 
+	// thread safe global entity offsets
 	std::atomic< entity_offsets_t* > m_entity_offsets{ nullptr };
 };
 

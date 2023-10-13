@@ -44,10 +44,10 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)Thirdparty\phnt;$(SolutionDir)Thirdparty\;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Thirdparty\luajit\src;$(SolutionDir)Thirdparty\luabridge\source\;$(SolutionDir)Thirdparty\phnt;$(SolutionDir)Thirdparty\;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)Thirdparty\phnt;$(SolutionDir)Thirdparty\;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Thirdparty\luajit\src;$(SolutionDir)Thirdparty\luabridge\source\;$(SolutionDir)Thirdparty\phnt;$(SolutionDir)Thirdparty\;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
