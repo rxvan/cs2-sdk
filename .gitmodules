@@ -1,0 +1,3 @@
+[submodule "Thirdparty/phnt"]
+	path = Thirdparty/phnt
+	url = https://github.com/winsiderss/phnt.git
