@@ -45,9 +45,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(SolutionDir)Thirdparty\luajit\src;$(SolutionDir)Thirdparty\luabridge\source\;$(SolutionDir)Thirdparty\phnt;$(SolutionDir)Thirdparty\;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Thirdparty\luajit\src;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(SolutionDir)Thirdparty\luajit\src;$(SolutionDir)Thirdparty\luabridge\source\;$(SolutionDir)Thirdparty\phnt;$(SolutionDir)Thirdparty\;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Thirdparty\luajit\src;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -56,10 +58,12 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>lua51.lib;luajit.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -71,29 +75,35 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <ExceptionHandling>Async</ExceptionHandling>
+      <Optimization>Full</Optimization>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <AdditionalDependencies>lua51.lib;luajit.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="core\ctx.h" />
+    <ClInclude Include="sdk\commands\command_handler.h" />
     <ClInclude Include="sdk\error_handler\error_handler.h" />
+    <ClInclude Include="sdk\memory\detail\base.h" />
     <ClInclude Include="sdk\memory\memory.h" />
     <ClInclude Include="sdk\sdk.h" />
-    <ClInclude Include="sdk\string_converter\string_converter.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="core\ctx.cpp" />
+    <ClCompile Include="sdk\commands\impl\command_handler.inl" />
     <ClCompile Include="sdk\sdk.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="sdk\error_handler\impl\error_handler.inl" />
     <None Include="sdk\memory\impl\memory.inl" />
-    <None Include="sdk\string_converter\impl\string_converter.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
