@@ -2,41 +2,38 @@
 #include <type_traits>
 #include <functional>
 #include <map>
+#include <string>
+
+#include "../../core/ctx.h"
+
+#define MAX_ARGS 4
 
 namespace sdk {
 	namespace command_handler {
 		namespace impl {
-			std::map< std::string, std::function< void( const std::vector< std::string >& ) > > commands;
+			inline std::map< std::string, std::function< void( const std::vector< std::string >& ) > > commands{};
 
-			template< typename T >
-			struct function_traits : function_traits< decltype( &T::operator() ) > { };
-			template< typename ClassType, typename ReturnType, typename... Args >
-			struct function_traits< ReturnType( ClassType::* )( Args... ) const > {
-				static const size_t arity = sizeof...( Args );
-				using result_type = ReturnType;
-				template< size_t i >
-				struct arg {
-					using type = typename std::tuple_element< i, std::tuple< Args... > >::type;
-				};
-			};
-			template< typename T >
-			struct is_callable {
-				template< typename U >
-				static auto test( U* p ) -> decltype( ( *p )( ), std::true_type( ) );
-				template< typename U >
-				static auto test( ... ) -> std::false_type;
-				static const bool value = decltype( test< T >( nullptr ) )::value;
+			constexpr std::vector< std::string > split_arguments( const std::string& str );
+
+			static const auto _exit = [ ]( const std::vector< std::string >& args ) -> void {
+				g_ctx->get_stop_source( ).request_stop( );
 			};
 
-			template< typename T >
-			struct is_function : std::integral_constant< bool, std::is_function< typename std::remove_pointer< T >::type >::value > { };
-
-
+			static const auto _quit = [ ]( const std::vector< std::string >& args ) -> void {
+				if ( args.empty( ) )
+					return exit( 0 );
+				else {
+					// get the exit code
+					const auto exit_code = std::stoi( args[ 0 ] );
+					return exit( exit_code );
+				}
+			};
 		}
 
-		ALWAYS_INLINE void init( );
+		void init( );
 
-		ALWAYS_INLINE bool run_command( const std::string& command );
+		bool run_command( const std::string& command );
+		bool register_command( const std::string& command, std::function< void( const std::vector< std::string >& ) > callback );
 	}
 }
 

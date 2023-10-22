@@ -44,6 +44,9 @@
     <ClCompile Include="sdk\commands\impl\command_handler.inl">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sdk\commands\impl\command_handler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="sdk\error_handler\impl\error_handler.inl">

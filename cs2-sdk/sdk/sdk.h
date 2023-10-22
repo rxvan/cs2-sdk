@@ -7,6 +7,9 @@
 #include <type_traits>
 #include <optional>
 #include <string>
+#include <vector>
+#include <map>
+#include <assert.h>
 
 #pragma region Standard Definitions
 #define STR(x) #x											// stringify

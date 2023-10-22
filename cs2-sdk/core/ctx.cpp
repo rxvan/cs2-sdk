@@ -1,12 +1,17 @@
 #include <memory>
 #include <thread>
-
-#include "ctx.h"
+#include <mutex>
 
 #include "../sdk/sdk.h"
 
-#include <processthreadsapi.h>
-#include <mutex>
+#include "ctx.h"
+
+// pre-defines so we don't need to include consoleapi.h
+#ifdef _DEBUG
+extern "C" __declspec( dllimport ) int __stdcall AllocConsole( );
+extern "C" __declspec( dllimport ) int __stdcall FreeConsole( );
+extern "C" __declspec( dllimport ) int __stdcall AttachConsole( unsigned long );
+#endif
 
 c_ctx::c_ctx( void* hmodule ) :
 	m_file( ),
@@ -17,22 +22,45 @@ c_ctx::c_ctx( void* hmodule ) :
 	( m_threads[ 1 ] = std::jthread( [ & ]( ) {
 		while ( !m_stop_source.get_token( ).stop_requested( ) ) {
 			if ( !m_ready.load( ) ) {
+				if ( !AllocConsole( ) ) {
+					if ( GetConsoleWindow( ) != NULL )
+						if ( !AttachConsole( -1 ) )
+							return; // failed to attach to parent process...
+				}
+
+				if ( freopen_s( &m_file[ 0 ], "CONIN$", "r", stdin ) != 0 ||
+					freopen_s( &m_file[ 1 ], "CONOUT$", "w", stdout ) != 0 )
+					return; // failed to redirect stdout/stdin
+
+				std::cin.clear( ); //
+				std::cin.sync( ); // 
+
 				std::once_flag flag;
 				std::call_once( flag, [ & ]( ) {
 					std::printf( "[INFO ] Initialising... Please wait!\r\n" );
 				} );
 			}
 			else {
-				std::printf( "[INFO ] Initialisation complete!\r\n" );
-				break;
+				std::once_flag flag;
+				std::call_once( flag, [ & ]( ) {
+					std::printf( "[INFO ] Initialised!\r\n" );
+				} );
+			}
+
+			// assign a var we can cin to
+			std::string in{ };
+			// read the input
+			std::getline( std::cin, in );
+
+			if ( !sdk::command_handler::run_command( in ) ) {
+				std::printf( "[ERROR] Failed to run command: %s\r\n", in.c_str( ) );
+				continue;
 			}
 
 			std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
 		}
 
-		// assign a var we can cin to
-		std::string in{ };
-		std::getline( std::cin, in );
+		std::printf( "[INFO ] Shutting down...\r\n" );
 
 		// stop requested, we can now free ourselves.
 		if ( m_file[ 0 ] != nullptr )
@@ -41,21 +69,15 @@ c_ctx::c_ctx( void* hmodule ) :
 		if ( m_file[ 1 ] != nullptr )
 			std::fclose( m_file[ 1 ] );
 
-		if ( m_threads[ 0 ].joinable( ) )
-			m_threads[ 0 ].join( );
+		FreeConsole( );
+		// close the console window
+		if ( const HWND hwnd = GetConsoleWindow( ); hwnd != NULL )
+			PostMessageA( hwnd, WM_CLOSE, 0, 0 );
 
-		std::printf( "[INFO ] Shutting down...\r\n" );
 		FreeLibraryAndExitThread( static_cast< HMODULE >( m_module ), 0ul );
-	}
+		}
 	) ).detach( );
 }
-
-// pre-defines so we don't need to include consoleapi.h
-#ifdef _DEBUG
-extern "C" __declspec( dllimport ) int __stdcall AllocConsole( );
-extern "C" __declspec( dllimport ) int __stdcall FreeConsole( );
-extern "C" __declspec( dllimport ) int __stdcall AttachConsole( unsigned long );
-#endif
 
 int __stdcall DllMain( void* module, unsigned long reason, void* reserved ) {
 	if ( reason != 1 )
@@ -72,18 +94,9 @@ int __stdcall DllMain( void* module, unsigned long reason, void* reserved ) {
 }
 
 void c_ctx::init( ) {
-	if ( !AllocConsole( ) ) {
-		if ( GetConsoleWindow( ) != NULL )
-			if ( !AttachConsole( -1 ) )
-				return; // failed to attach to parent process...
-	}
-
-	if ( freopen_s( &m_file[ 0 ], "CONOUT$", "r", stdout ) != 0 ||
-		 freopen_s( &m_file[ 1 ], "CONOUT$", "w", stdout ) != 0 )
-		return; // failed to redirect stdout/stdin
-
 	try {
 		sdk::error_handler::init( );
+		sdk::command_handler::init( );
 
 		const auto& client = sdk::memory::get_module_information( "client.dll" );
 
@@ -94,14 +107,15 @@ void c_ctx::init( ) {
 		if ( CreateInterface.has_value( ) )
 			std::printf( "[INFO] CreateInterface: 0x%llX\r\n", CreateInterface->get( ) );
 
-	} catch ( const std::exception& ex ) {
+	}
+	catch ( const std::exception& ex ) {
 #ifdef _DEBUG
 		std::printf( "[ERROR] %s\r\n", ex.what( ) );
 #else
 		// create a dump at some point in the future.
 #endif
 		m_ready.store( false );
-		
+
 		if ( m_stop_source.stop_possible( ) ) {
 			m_stop_source.request_stop( );
 		}
@@ -109,5 +123,4 @@ void c_ctx::init( ) {
 	}
 
 	m_ready.store( true ); // everything is done bruh
-	m_threads[ 0 ].request_stop( );
 }

@@ -1,12 +1,14 @@
+#include <phnt_windows.h>
+#include <phnt_ntdef.h>
+#include <phnt.h>
+#include <stringapiset.h>
+#include <variant>
 #include <type_traits>
-#include <vector>
-#include <format>
-#include <array>
-#include <map>
+#include <optional>
 #include <string>
-#include <string_view>
+#include <vector>
+#include <map>
 #include <assert.h>
-#include <cstdint>
 
 #include "memory/memory.h"
 #include "error_handler/error_handler.h"

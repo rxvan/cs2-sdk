@@ -1,6 +1,7 @@
 #pragma once
 #include <lua.hpp>
 #include <LuaBridge/LuaBridge.h>
+#include <thread>
 
 class c_ctx {
 public:
@@ -27,6 +28,10 @@ public:
 	std::atomic< entity_offsets_t* > m_entity_offsets{ nullptr };
 
 	std::atomic< struct lua_State* > m_lua_state{ nullptr };
+
+	std::stop_source& get_stop_source( ) {
+		return m_stop_source;
+	}
 };
 
 inline std::unique_ptr< c_ctx > g_ctx;
