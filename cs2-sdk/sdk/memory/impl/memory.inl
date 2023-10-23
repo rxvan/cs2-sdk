@@ -3,6 +3,7 @@
 #include <functional>
 
 #include "../../sdk.h"
+#include "../../util/util.h"
 
 #include "../memory.h"
 
@@ -36,13 +37,13 @@ namespace sdk::memory {
 					IMAGE_NT_HEADERS* nt_headers = reinterpret_cast< IMAGE_NT_HEADERS* >( reinterpret_cast< uintptr_t >( entry->DllBase ) + dos_header->e_lfanew );
 
 					// call the function
-					fn( module_t( sdk::w2m( entry->BaseDllName.Buffer ).data( ), nt_headers, dos_header ), is_done );
+					fn( module_t( util::w2m( entry->BaseDllName.Buffer ).data( ), nt_headers, dos_header ), is_done );
 				}
 			} while ( list_entry != peb->Ldr->InLoadOrderModuleList.Blink );
 		}
 	}
 
-	ALWAYS_INLINE sdk::optional_t< module_t > const get_module_information( const char* name ) {
+	ALWAYS_INLINE sdk::optional_t< module_t > get_module_information( const char* name ) {
 		std::optional< module_t > ret = std::nullopt;
 
 		impl::for_each_module( [ &name, &ret ]( const module_t& mod, bool& is_done ) {
@@ -57,12 +58,12 @@ namespace sdk::memory {
 					is_done = true;
 				}
 			}
-		} );
+			} );
 
 		return ret;
 	}
 
-	ALWAYS_INLINE sdk::optional_t<module_t> const memory::get_module_information( void* base_address ) {
+	ALWAYS_INLINE sdk::optional_t<module_t> get_module_information( void* base_address ) {
 		std::optional< module_t > ret = std::nullopt;
 
 		impl::for_each_module( [ &base_address, &ret ]( const module_t& mod, bool& is_done ) {
@@ -71,7 +72,7 @@ namespace sdk::memory {
 				return;
 
 			if ( std::holds_alternative< const address_t >( value ) ) {
-				const address_t& addr = std::get< const address_t >( value );
+				address_t addr = std::get< const address_t >( value );
 				if ( addr == reinterpret_cast< std::uintptr_t >( base_address ) ) {
 					ret = mod;
 					is_done = true;
@@ -80,6 +81,41 @@ namespace sdk::memory {
 		} );
 
 		return ret;
+	}
+
+	template < typename _interface_class >
+	ALWAYS_INLINE sdk::optional_t<_interface_class*> const get_interface( const module_t& mod, const char* interface_name ) {
+		if ( mod.m_exports.find( "CreateInterface" ) == mod.m_exports.end( ) )
+			return std::nullopt; // bruh
+
+		address_t CreateInterface = mod.m_exports.at( "CreateInterface" );
+		if ( !CreateInterface )
+			return std::nullopt; // bruh
+
+		CreateInterface.self_relative( 0x3 ).self_deref( );
+
+		const auto get_interface = [ &CreateInterface ]( const char* interface_name ) -> void* {
+			struct interface_entry_t {
+				typedef void* ( *create_t )( );
+
+				create_t            m_create_fn{};
+				const char* m_name{};
+				interface_entry_t* m_next{};
+			};
+
+			for ( interface_entry_t* cur = reinterpret_cast< interface_entry_t* >( CreateInterface.get( ) ); cur != nullptr; cur = cur->m_next ) {
+				if ( cur->m_name == nullptr )
+					continue;
+
+				if ( sdk::util::hash( interface_name ) == sdk::util::hash( cur->m_name ) )
+					return cur->m_create_fn( );
+			}
+		};
+
+		if ( void* interface_ptr = get_interface( interface_name ) )
+			return reinterpret_cast< _interface_class* >( interface_ptr );
+
+		return std::nullopt; // bruh.
 	}
 
 }

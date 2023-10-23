@@ -50,6 +50,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(SolutionDir)Thirdparty\luajit\src;$(SolutionDir)Thirdparty\luabridge\source\;$(SolutionDir)Thirdparty\phnt;$(SolutionDir)Thirdparty\;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)Thirdparty\luajit\src;$(LibraryPath)</LibraryPath>
+    <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -68,10 +69,10 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
+      <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -79,6 +80,11 @@
       <Optimization>Full</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
+      <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -95,16 +101,21 @@
     <ClInclude Include="sdk\memory\detail\base.h" />
     <ClInclude Include="sdk\memory\memory.h" />
     <ClInclude Include="sdk\sdk.h" />
+    <ClInclude Include="sdk\util\util.h" />
+    <ClInclude Include="valve\interfaces\panorama\panorama.h" />
+    <ClInclude Include="valve\util\utl_vector.h" />
+    <ClInclude Include="valve\valve.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="core\ctx.cpp" />
     <ClCompile Include="sdk\commands\impl\command_handler.cpp" />
-    <ClCompile Include="sdk\commands\impl\command_handler.inl" />
     <ClCompile Include="sdk\sdk.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="sdk\error_handler\impl\error_handler.inl" />
     <None Include="sdk\memory\impl\memory.inl" />
+    <None Include="sdk\util\impl\util.inl" />
+    <None Include="valve\interfaces\panorama\impl\panorama.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

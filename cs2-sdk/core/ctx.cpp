@@ -3,6 +3,15 @@
 #include <mutex>
 
 #include "../sdk/sdk.h"
+#include "../sdk/commands/command_handler.h"
+#include "../sdk/error_handler/error_handler.h"
+#include "../sdk/memory/memory.h"
+#include "../sdk/util/util.h"
+#include "../valve/valve.h"
+
+#include <stoba.h>
+
+#define STB(x) stoba::make<x>()
 
 #include "ctx.h"
 
@@ -45,16 +54,14 @@ c_ctx::c_ctx( void* hmodule ) :
 				std::call_once( flag, [ & ]( ) {
 					std::printf( "[INFO ] Initialised!\r\n" );
 				} );
-			}
 
-			// assign a var we can cin to
-			std::string in{ };
-			// read the input
-			std::getline( std::cin, in );
+				// assign a var we can cin to
+				std::string in{ };
+				// read the input
+				std::getline( std::cin, in );
 
-			if ( !sdk::command_handler::run_command( in ) ) {
-				std::printf( "[ERROR] Failed to run command: %s\r\n", in.c_str( ) );
-				continue;
+				if ( const auto& res = sdk::command_handler::run_command( in ); res.has_value( ) )
+					std::printf( "Failed to run command: %s", res );
 			}
 
 			std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
@@ -98,15 +105,33 @@ void c_ctx::init( ) {
 		sdk::error_handler::init( );
 		sdk::command_handler::init( );
 
-		const auto& client = sdk::memory::get_module_information( "client.dll" );
+		sdk::optional_t< sdk::memory::module_t >
+			client = sdk::memory::get_module_information( "client.dll" ),
+			panorama = sdk::memory::get_module_information( "panorama.dll" );
+
+		assert( client.has_value( ) && panorama.has_value( ) );
 
 		// print the base of client.dll
-		std::printf( "[INFO] client.dll base: 0x%llX\r\n", std::get< const sdk::memory::address_t >( client->get< sdk::e_get_module_base >( ) ).get( ) );
+		if ( sdk::memory::address_t client_base = std::get< const sdk::memory::address_t >( client->get< sdk::e_get_module_base >( ) ); client_base.is_valid( ) )
+			std::printf( "[INFO ] client.dll base: 0x%llX\r\n", client_base.get( ) );
+		
+		offsets_t offsets = get_offsets( ).load( );
+		constexpr auto main_menu_pattern  = STB( "48 89 ? ? ? ? ? 4C 89 ? ? ? ? ? 48 89 ? ? ? ? ? 48 8B" );
+		constexpr auto ui_engine_pattern  = STB( "74 25 48 8B 0D ? ? ? ? 4C 8B C2" );
+		constexpr auto run_script_pattern = STB( "48 89 5C 24 ? 48 89 6C 24 ? 56 57 41 54 41 56 41 57 48 81 EC ? ? ? ? 4C 8B F1" );
 
-		const std::optional< sdk::memory::address_t > CreateInterface = client->find_pattern( sdk::string_to_bytes( "4C 8B 0D ? ? ? ? 4C 8B D2 4C" ) );
-		if ( CreateInterface.has_value( ) )
-			std::printf( "[INFO] CreateInterface: 0x%llX\r\n", CreateInterface->get( ) );
+		offsets.m_panorama.m_main_menu_panel = client->find_pattern(
+			main_menu_pattern
+		).value_or( 0xCC ).self_offset( 0x11 ).self_relative( ).deref( );
+		offsets.m_panorama.m_engine = client->find_pattern(
+			ui_engine_pattern
+		).value_or( 0xCC ).self_offset( 0x5 ).self_relative( );
+		offsets.m_panorama.m_run_script = panorama->find_pattern(
+			run_script_pattern
+		).value_or( 0xCC );
+		get_offsets( ).store( offsets );
 
+		valve::interfaces::panorama::run_script( R"( GameInterfaceAPI.ConsoleCommand( 'quit' ) )" );
 	}
 	catch ( const std::exception& ex ) {
 #ifdef _DEBUG

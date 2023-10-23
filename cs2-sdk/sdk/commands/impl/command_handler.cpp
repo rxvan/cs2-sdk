@@ -55,10 +55,10 @@ namespace sdk {
 		};
 	}
 
-	bool command_handler::run_command( const std::string& command ) {
+	std::optional< const char* > command_handler::run_command( const std::string& command ) {
 		ASSERT( !command.empty( ) );
 
-		std::string cmd;
+		std::string cmd;	
 		if ( auto command_name_index = command.find_first_of( ' ' ); command_name_index != std::string::npos ) {
 			cmd = command.substr( 0, command_name_index );
 		}
@@ -67,15 +67,18 @@ namespace sdk {
 		}
 
 		if ( auto command_it = impl::commands.find( cmd ); command_it != impl::commands.end( ) ) {
-			command_it->second( impl::split_arguments( command ) );
-			return true;
+			const impl::cmd_result_t& result = command_it->second( impl::split_arguments( command ) );
+			if ( result.state == impl::cmd_result_t::e_return_success )
+				return std::nullopt;
+			else
+				return result.msg;
+
 		}
 
-		std::printf( "%s not found!\r\n", cmd.data( ) );
-		return false;
+		return "Unknown command.\r\n";
 	}
 	
-	bool command_handler::register_command( const std::string& command, std::function<void( const std::vector<std::string>& )> callback ) {
+	bool command_handler::register_command( const std::string& command, std::function<impl::cmd_result_t( const std::vector<std::string>& )> callback ) {
 		impl::commands.insert( { command, callback } );
 		return impl::commands.find( command ) != impl::commands.end( );
 	}

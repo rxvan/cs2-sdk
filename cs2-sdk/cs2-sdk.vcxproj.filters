@@ -33,15 +33,24 @@
     <ClInclude Include="sdk\commands\command_handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="valve\interfaces\panorama\panorama.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="valve\util\utl_vector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="valve\valve.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sdk\util\util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="core\ctx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sdk\sdk.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sdk\commands\impl\command_handler.inl">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sdk\commands\impl\command_handler.cpp">
@@ -53,6 +62,12 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="sdk\memory\impl\memory.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="valve\interfaces\panorama\impl\panorama.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="sdk\util\impl\util.inl">
       <Filter>Header Files</Filter>
     </None>
   </ItemGroup>

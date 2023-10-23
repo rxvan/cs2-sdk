@@ -11,30 +11,55 @@
 namespace sdk {
 	namespace command_handler {
 		namespace impl {
-			inline std::map< std::string, std::function< void( const std::vector< std::string >& ) > > commands{};
+			struct cmd_result_t {
+				static enum e_return_state : int {
+					e_return_success = 0,
+					e_return_unknown_command,
+					e_return_invalid_arg,
+					e_return_missing_arg
+				};
+
+				e_return_state state;
+				const char* msg;
+
+				cmd_result_t( e_return_state _state = e_return_success ) :
+					state( _state )
+				{ }
+			};
+
+			inline std::map< std::string, std::function< cmd_result_t( const std::vector< std::string >& ) > > commands{};
 
 			constexpr std::vector< std::string > split_arguments( const std::string& str );
 
-			static const auto _exit = [ ]( const std::vector< std::string >& args ) -> void {
+			static const auto _exit = [ ]( const std::vector< std::string >& args ) -> cmd_result_t {
+				cmd_result_t result{ };
 				g_ctx->get_stop_source( ).request_stop( );
+				return result;
 			};
 
-			static const auto _quit = [ ]( const std::vector< std::string >& args ) -> void {
-				if ( args.empty( ) )
-					return exit( 0 );
+			static const auto _quit = [ ]( const std::vector< std::string >& args ) -> cmd_result_t {
+				cmd_result_t result{ };
+
+				if ( args.empty( ) ) {
+					exit( 0 );
+				}
 				else {
 					// get the exit code
-					const auto exit_code = std::stoi( args[ 0 ] );
-					return exit( exit_code );
+					try {
+						const auto exit_code = std::stoi( args[ 0 ] );
+						exit( exit_code );
+					}
+					catch ( const std::exception& ) {
+						result.state = cmd_result_t::e_return_invalid_arg;
+						result.msg = sdk::util::format( "arg 0 invalid! expected int, received %s.\r\n", args[ 0 ] ).data( );
+					}
 				}
 			};
 		}
 
 		void init( );
 
-		bool run_command( const std::string& command );
-		bool register_command( const std::string& command, std::function< void( const std::vector< std::string >& ) > callback );
+		std::optional< const char* > run_command( const std::string& command );
+		bool register_command( const std::string& command, std::function< impl::cmd_result_t( const std::vector< std::string >& ) > callback );
 	}
 }
-
-#include "impl/command_handler.inl"
