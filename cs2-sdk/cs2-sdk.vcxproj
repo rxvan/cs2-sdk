@@ -102,7 +102,9 @@
     <ClInclude Include="sdk\memory\memory.h" />
     <ClInclude Include="sdk\sdk.h" />
     <ClInclude Include="sdk\util\util.h" />
+    <ClInclude Include="valve\interfaces\input\input.h" />
     <ClInclude Include="valve\interfaces\panorama\panorama.h" />
+    <ClInclude Include="valve\util\pb.h" />
     <ClInclude Include="valve\util\utl_vector.h" />
     <ClInclude Include="valve\valve.h" />
   </ItemGroup>

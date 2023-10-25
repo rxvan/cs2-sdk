@@ -45,6 +45,12 @@
     <ClInclude Include="sdk\util\util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="valve\interfaces\input\input.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="valve\util\pb.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="core\ctx.cpp">

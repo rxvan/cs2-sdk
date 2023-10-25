@@ -61,7 +61,7 @@ c_ctx::c_ctx( void* hmodule ) :
 				std::getline( std::cin, in );
 
 				if ( const auto& res = sdk::command_handler::run_command( in ); res.has_value( ) )
-					std::printf( "Failed to run command: %s", res );
+					std::printf( "Failed to run command: %s", res.value( ) );
 			}
 
 			std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
@@ -131,7 +131,7 @@ void c_ctx::init( ) {
 		).value_or( 0xCC );
 		get_offsets( ).store( offsets );
 
-		valve::interfaces::panorama::run_script( R"( GameInterfaceAPI.ConsoleCommand( 'quit' ) )" );
+
 	}
 	catch ( const std::exception& ex ) {
 #ifdef _DEBUG

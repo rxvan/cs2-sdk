@@ -17,7 +17,7 @@
 #define PTR(x) std::add_pointer_t<x>						// pointer
 #define REF(x) std::add_lvalue_reference_t<x>				// reference
 #define RREF(x) std::add_rvalue_reference_t<x>				// reference
-#define PAD(x) std::array<std::byte, x>						// class padding
+#define PAD(x) std::array<std::byte, x> __pad_##x			// class padding
 #define LEN(x) std::extent_v<x>								// array length
 #define SIZE(x) sizeof(x)									// size of type
 #define CSIZE(x) constexpr SIZE(x)							// constexpr size of type
